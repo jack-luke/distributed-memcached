@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cache-headless
+  labels:
+    app: cache
+spec:
+  clusterIP: None
+  selector:
+    app: cache
+  ports:
+    - port: 11211
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cache
+  labels:
+    app: cache
+spec:
+  serviceName: cache-headless
+  replicas: 3 # set <= expected node count
+  selector:
+    matchLabels:
+      app: cache
+  template:
+    metadata:
+      labels:
+        app: cache
+    spec:
+      containers:
+        - name: cache
+          image: memcached:alpine
+          args: ["-m", "256", "-vv"] # cache limit 256MB (244MiB)
+          ports:
+            - containerPort: 11211
+          livenessProbe:
+            tcpSocket:
+              port: 11211
+            initialDelaySeconds: 10
+            failureThreshold: 5 # longer to avoid losing cache through restarts
+          readinessProbe:
+            tcpSocket:
+              port: 11211
+            initialDelaySeconds: 5
+          resources:
+            requests:
+              memory: 300Mi
+              cpu: 100m
+            limits:
+              memory: 400Mi
+              cpu: 500m
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - cache
+              topologyKey: kubernetes.io/hostname

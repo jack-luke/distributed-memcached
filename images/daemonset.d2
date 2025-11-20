@@ -1,0 +1,14 @@
+direction: right
+
+Node 0 {
+    App Pod -> proxy-daemonset
+    proxy-daemonset -> cache-0
+}
+
+Node 0.proxy-daemonset -> Node 1.cache-1
+
+Node 1 {
+    proxy-daemonset -> cache-1
+}
+
+Node 1.proxy-daemonset -> Node 0.cache-0

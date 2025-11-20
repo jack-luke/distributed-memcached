@@ -1,0 +1,10 @@
+direction: right
+
+Node 0 {
+    App Pod {
+        App -> Sidecar Proxy
+    }
+    App Pod.Sidecar Proxy -> cache-0
+}
+
+Node 0.App Pod.Sidecar Proxy -> Node 1.cache-1

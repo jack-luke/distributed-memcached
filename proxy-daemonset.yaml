@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cache-proxy
+  labels:
+    app: cache-proxy
+spec:
+  type: LoadBalancer
+  selector:
+    app: cache-proxy
+  ports:
+    - port: 11211
+      targetPort: 11211
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: cache-proxy
+  labels:
+    app: cache-proxy
+spec:
+  selector:
+    matchLabels:
+      app: cache-proxy
+  template:
+    metadata:
+      labels:
+        app: cache-proxy
+    spec:
+      containers:
+        - name: cache-proxy
+          image: memcached:alpine
+          args: ["-o", "proxy_config=routelib,proxy_arg=/etc/config.lua", "-vv"]
+          ports:
+            - containerPort: 11211
+          volumeMounts:
+            - name: proxy-config
+              mountPath: /etc/config.lua
+              subPath: config.lua
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 50m
+            limits:
+              memory: 128Mi
+              cpu: 250m
+          livenessProbe:
+            tcpSocket:
+              port: 11211
+            initialDelaySeconds: 5
+          readinessProbe:
+            tcpSocket:
+              port: 11211
+            initialDelaySeconds: 5
+      volumes:
+        - name: proxy-config
+          configMap:
+            name: proxy-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxy-config
+  labels:
+    app: cache-proxy
+data:
+  config.lua: |
+    pools{
+      main = {
+        backends = {
+          "cache-0.cache-headless.cache.svc.cluster.local:11211",
+          "cache-1.cache-headless.cache.svc.cluster.local:11211",
+          "cache-2.cache-headless.cache.svc.cluster.local:11211",
+        }
+      }
+    }
+    routes{
+      default = route_direct{ child = "main" }
+    }
