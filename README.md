@@ -1,9 +1,9 @@
-# Distributed Memcached Kubernetes Manifests
+# Distributed Memcached
 
-Kubernetes manifests that demonstrate various architectures for deploying a distributed memcached system.
+This project is the result of an investigation into deploying [memcached](https://memcached.org) as a distributed cache to Kubernetes.
 
 ## Description
-This project consists of manifests for deploying memcached as a distributed cache system. 
+This project consists of Kubernetes manifests for deploying memcached as a distributed cache. 
 When using memcached as a distributed system, configuration of the replication & partitioning of cache data is done via the [memcached proxy](https://docs.memcached.org/features/proxy/). 
 
 The manifests that implement the proxy show some possible ways to configure the system that may improve cache availability, hit-rate, or latency.
