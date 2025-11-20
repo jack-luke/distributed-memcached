@@ -1,11 +1,11 @@
 direction: right
 
 Node 0 {
-    App Pod.Sidecar Proxy -> cache-0
+    App Pod.Proxy Sidecar -> cache-0
     App Pod {
-        App -> Sidecar Proxy
-        Sidecar Proxy -> Local Cache Sidecar
+        App -> Proxy Sidecar
+        Proxy Sidecar -> Local Cache Sidecar
     }
 }
 
-Node 0.App Pod.Sidecar Proxy -> Node 1.cache-1
+Node 0.App Pod.Proxy Sidecar -> Node 1.cache-1
