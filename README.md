@@ -26,7 +26,7 @@ In this example, each server has up to 256MB of cache, so memory requests and li
 
 ### Proxy DaemonSet
 A DaemonSet of memcached proxies to provide a simple, cluster-wide access point for a sharded cache.
-![Proxy Daemonset Diagram](./images/daemonset.svg)
+<img src="./images/daemonset.svg" width=80% alt="Diagram showing how an app uses the memcached proxy daemonset to access a sharded cache across two Kubernetes nodes." >
 
 ```bash
 kubectl apply -f proxy-daemonset.yaml
@@ -38,7 +38,7 @@ This effecively pools the memory of all cache servers, meaning clients have a mu
 
 ### Proxy Sidecar
 Implements memcached proxy as a sidecar to an application, to simplify application configuration.
-![Proxy Sidecar Diagram](./images/proxy-sidecar.svg)
+<img src="./images/proxy-sidecar.svg" width=80% alt="Diagram showing how an app utilises a memcached proxy as a sidecar to access a replicated cache across two Kubernetes nodes.">
 ```bash
 kubectl apply -f proxy-sidecar.yaml
 ```
@@ -49,7 +49,7 @@ This means that any cache node going down will not result in lost cache entries,
 
 ### Cache Sidecar with Cluster Failover
 Implements a small, local cache and proxy as sidecars, which fails over to a cluster-wide cache pool.
-![Proxy Sidecar with Cluster Failover Diagram](./images/proxy-sidecar-cluster-failover.svg)
+<img src="./images/proxy-sidecar-cluster-failover.svg" width=80% alt="Diagram showing how an app can use a sidecar memcached proxy to access a local cache sidecar, as well as a cluster-wide cache.">
 ```bash
 kubectl apply -f sidecar-cluster-failover.yaml
 ```
