@@ -82,7 +82,7 @@ data:
     routes{
       -- get command polls all servers and returns first response
       cmap = {
-        get = route_fastest{
+        get = route_allfastest{
           children = "set_all",
           miss = true, -- failover on miss
         },
