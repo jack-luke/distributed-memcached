@@ -14,7 +14,7 @@ All proxy configurations assume the cache servers are the ones described in [Cac
 ### Cache StatefulSet
 A StatefulSet of memcached servers to be leveraged as a distributed cache.
 ```bash
-kubectl apply -f cache-statefulset.yaml
+kubectl apply -f cache-statefulset.yaml -n cache
 ```
 The headless service allows pods to be referenced individually for consistent hashing.
 
@@ -30,7 +30,7 @@ A DaemonSet of memcached proxies to provide a simple, cluster-wide access point 
 <img src="./images/daemonset.svg" width=70% alt="Diagram showing how an app uses the memcached proxy daemonset to access a sharded cache across two Kubernetes nodes." >
 
 ```bash
-kubectl apply -f proxy-daemonset.yaml
+kubectl apply -f proxy-daemonset.yaml -n cache
 ```
 Pods exposed through a loadbalancer service on standard memcached port `11211`.
 
@@ -43,7 +43,7 @@ Implements memcached proxy as a sidecar to an application, to simplify applicati
 <img src="./images/proxy-sidecar.svg" width=70% alt="Diagram showing how an app utilises a memcached proxy as a sidecar to access a replicated cache across two Kubernetes nodes.">
 
 ```bash
-kubectl apply -f proxy-sidecar.yaml
+kubectl apply -f proxy-sidecar.yaml -n cache
 ```
 The app interacts with the proxy as if it were a normal memcached server, on localhost port 11211.
 
@@ -56,7 +56,7 @@ Implements a small, local cache and proxy as sidecars, which fails over to a clu
 <img src="./images/proxy-sidecar-cluster-failover.svg" width=70% alt="Diagram showing how an app can use a sidecar memcached proxy to access a local cache sidecar, as well as a cluster-wide cache." >
 
 ```bash
-kubectl apply -f sidecar-cluster-failover.yaml
+kubectl apply -f sidecar-cluster-failover.yaml -n cache
 ```
 The app interacts with the proxy as if it were a normal memcached server, on localhost port 11211.
 
