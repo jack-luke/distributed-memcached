@@ -93,11 +93,11 @@ metadata:
     app: app
 data:
   config.lua: |
-    local_zone("local")
+    local_zone("sidecar")
 
     pools{
       set_all = {
-        local = {
+        sidecar = {
           backends = {
             "127.0.0.1:11212",
           },
