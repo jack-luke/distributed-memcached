@@ -33,7 +33,7 @@ spec:
           image: nginx:latest
           
       initContainers:
-        - name: cache-proxy
+        - name: proxy
           image: memcached:alpine
           restartPolicy: Always
           args: ["-o", "proxy_config=routelib,proxy_arg=/etc/config.lua", "-vv"]
@@ -104,9 +104,9 @@ data:
         },
         cluster = {
           backends = {
-            "cache-0.cache-headless.cache.svc.cluster.local:11211",
-            "cache-1.cache-headless.cache.svc.cluster.local:11211",
-            "cache-2.cache-headless.cache.svc.cluster.local:11211",
+            "memcached-0.memcached-headless.cache.svc.cluster.local:11211",
+            "memcached-1.memcached-headless.cache.svc.cluster.local:11211",
+            "memcached-2.memcached-headless.cache.svc.cluster.local:11211",
           },
         },
       },

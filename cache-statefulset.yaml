@@ -1,35 +1,35 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: cache-headless
+  name: memcached-headless
   labels:
-    app: cache
+    app: memcached
 spec:
   clusterIP: None
   selector:
-    app: cache
+    app: memcached
   ports:
     - port: 11211
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: cache
+  name: memcached
   labels:
-    app: cache
+    app: memcached
 spec:
-  serviceName: cache-headless
+  serviceName: memcached-headless
   replicas: 3 # set <= expected node count
   selector:
     matchLabels:
-      app: cache
+      app: memcached
   template:
     metadata:
       labels:
-        app: cache
+        app: memcached
     spec:
       containers:
-        - name: cache
+        - name: memcached
           image: memcached:alpine
           args: ["-m", "256", "-vv"] # cache limit 256MB (244MiB)
           ports:
@@ -58,5 +58,5 @@ spec:
                   - key: app
                     operator: In
                     values:
-                      - cache
+                      - memcached
               topologyKey: kubernetes.io/hostname

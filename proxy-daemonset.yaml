@@ -3,11 +3,11 @@ kind: Service
 metadata:
   name: cache-proxy
   labels:
-    app: cache-proxy
+    app: proxy
 spec:
   type: LoadBalancer
   selector:
-    app: cache-proxy
+    app: proxy
   ports:
     - port: 11211
       targetPort: 11211
@@ -16,20 +16,20 @@ spec:
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: cache-proxy
+  name: proxy
   labels:
-    app: cache-proxy
+    app: proxy
 spec:
   selector:
     matchLabels:
-      app: cache-proxy
+      app: proxy
   template:
     metadata:
       labels:
-        app: cache-proxy
+        app: proxy
     spec:
       containers:
-        - name: cache-proxy
+        - name: proxy
           image: memcached:alpine
           args: ["-o", "proxy_config=routelib,proxy_arg=/etc/config.lua", "-vv"]
           ports:
@@ -63,15 +63,15 @@ kind: ConfigMap
 metadata:
   name: proxy-config
   labels:
-    app: cache-proxy
+    app: proxy
 data:
   config.lua: |
     pools{
       main = {
         backends = {
-          "cache-0.cache-headless.cache.svc.cluster.local:11211",
-          "cache-1.cache-headless.cache.svc.cluster.local:11211",
-          "cache-2.cache-headless.cache.svc.cluster.local:11211",
+          "memcached-0.memcached-headless.cache.svc.cluster.local:11211",
+          "memcached-1.memcached-headless.cache.svc.cluster.local:11211",
+          "memcached-2.memcached-headless.cache.svc.cluster.local:11211",
         }
       }
     }
