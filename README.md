@@ -74,6 +74,8 @@ By replicating *and* sharding data in a distributed cache, data can endure
 server and host machine failure, at the cost of increased memory requirements 
 for a given amount of cache entries.
 
+<img src="./images/replicated-sharded.svg" alt="Diagram showing how shards of cache data are placed across nodes." >
+
 To implement this with Memcached on Kubernetes, cache pods must be placed so
 that copies of data are stored on different Kubernetes nodes. Depending on the
 number of cache shards & replicas required, and number of Kubernetes nodes 
