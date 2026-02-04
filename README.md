@@ -69,6 +69,102 @@ If this misses, the request polls a larger, sharded cache pool. Writes are synch
 
 The local cache container is configured with 64MB of cache.
 
+## Replicated & Sharded Cache
+By replicating *and* sharding data in a distributed cache, data can endure 
+server and host machine failure, at the cost of increased memory requirements 
+for a given amount of cache entries.
+
+To implement this with Memcached on Kubernetes, cache pods must be placed so
+that copies of data are stored on different Kubernetes nodes. Depending on the
+number of cache shards & replicas required, and number of Kubernetes nodes 
+available, the solution for this may differ slightly.
+
+In this solution, two replicas are deployed using two StatefulSets, which are 
+named & labelled by the replica of data that they contain, and pods are evenly
+spread across nodes.
+
+```yaml
+kind: StatefulSet
+metadata:
+  name: memcached-0
+  labels:
+	memcached/replica: 0
+spec:
+  replicas: 3
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: "kubernetes.io/hostname"
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        memcached/replica: 0
+```
+
+The pods are then named by their replica and shard name, like so: 
+```yaml
+# memcached-<REPLICA>-<SHARD>
+memcached-0-0, memcached-0-1, memcached-0-2
+
+memcached-1-0, memcached-1-1, memcached-1-2
+```
+
+The Memcached Proxy simply lists the pods for each StatefulSet in a dedicated
+pool, which are given unique hash seeds, to distribute data differently across 
+different pools.
+
+Get requests return the first response, whilst all write/delete operations are
+synchronously carried out to both replicas.
+```lua
+pools{
+    set_all = {
+        replica_0 = { 
+			options = { seed = "replica_0" },
+			backends = { 
+				"memcached-0-0.memcached-0-headless.cache.svc.cluster.local:11211",
+				"memcached-0-1.memcached-0-headless.cache.svc.cluster.local:11211",
+				"memcached-0-2.memcached-0-headless.cache.svc.cluster.local:11211",
+			} 
+		},
+        replica_1 = { 
+			options = { seed = "replica_1" },
+			backends = { 
+				"memcached-1-0.memcached-1-headless.cache.svc.cluster.local:11211",
+				"memcached-1-1.memcached-1-headless.cache.svc.cluster.local:11211",
+				"memcached-1-2.memcached-1-headless.cache.svc.cluster.local:11211",
+			}
+		},
+    },
+}
+
+routes{
+    cmap = {
+        get = route_allfastest{
+            children = "set_all",
+            miss = false, -- do not failover for a miss, only errors
+        },
+    default = route_allsync{
+        children = "set_all",
+    },
+}
+```
+
+### Pros
+- Each replica of data is an independent StatefulSets, so any StatefulSet can 
+be restarted/rolled out and all data will remain available via the other 
+replica, and over time the synchronous writes will re-populate cache entries.
+
+- Flexible with number of servers in each pool. For example, the second replica
+StatefulSet may be setup with a single stand-in node that handles failed
+requests, as shown in: [Memcached: Gutter failover for downed backends](https://docs.memcached.org/features/proxy/examples/#gutter-failover-for-downed-backends).
+
+### Cons
+- Using unique hash seeds per pool guarantees that distribution of data amongst
+cache servers in each pool is different, but it is *not* guaranteed that any
+one key will not be replicated on the same Kubernetes node. So, it is *unlikely*
+(not impossible) that a node holds both replicas of the same key, meaning
+durability of data during node failure is not 100%. However this probability 
+reduces as number of Kubernetes nodes increases.
+
 ## Help & Resources
 * [Configuring memcached proxy](https://docs.memcached.org/features/proxy/configure/)
 * [Memcached proxy configuration examples](https://docs.memcached.org/features/proxy/examples/)
