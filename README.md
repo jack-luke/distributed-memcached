@@ -90,7 +90,7 @@ kind: StatefulSet
 metadata:
   name: memcached-0
   labels:
-	memcached/replica: 0
+    memcached/replica: 0
 spec:
   replicas: 3
   topologySpreadConstraints:
